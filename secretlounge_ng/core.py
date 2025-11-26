@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from threading import Lock
 from importlib import import_module
 from typing import Optional, Dict
+import yaml
 
 from . import replies as rp
 from .globals import *
@@ -133,6 +134,11 @@ def requireRank(need_rank):
 			return func(user, *args, **kwargs)
 		return wrapper
 	return f
+
+def load_karma(path):
+	with open(path, "r") as f:
+		karma = yaml.safe_load(f)
+	return karma
 
 ###
 
@@ -532,6 +538,24 @@ def give_karma(user: User, msid):
 	if not user2.hideKarma:
 		_push_system_message(rp.Reply(rp.types.KARMA_NOTIFICATION), who=user2, reply_to=msid)
 	return rp.Reply(rp.types.KARMA_THANK_YOU)
+
+@requireUser
+def give_custom_karma(user: User, msid, karma_cmd):
+	cm = ch.getMessage(msid)
+	if cm is None or cm.user_id is None:
+		return rp.Reply(rp.types.ERR_NOT_IN_CACHE)
+
+	if cm.hasUpvoted(user):
+		return rp.Reply(rp.types.ERR_ALREADY_UPVOTED)
+	elif user.id == cm.user_id:
+		return rp.Reply(rp.types.ERR_UPVOTE_OWN_MESSAGE)
+	cm.addUpvote(user)
+	user2 = db.getUser(id=cm.user_id)
+	with db.modifyUser(id=cm.user_id) as user2:
+		user2.karma += karma_cmd["amount"]
+	if not user2.hideKarma:
+		_push_system_message(rp.Reply(rp.types.KARMA_CUSTOM, text=karma_cmd["receiver"]), who=user2, reply_to=msid)
+	return rp.Reply(rp.types.KARMA_CUSTOM, text=karma_cmd["sender"])
 
 
 @requireUser

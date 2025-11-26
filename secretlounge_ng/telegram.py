@@ -10,6 +10,7 @@ from . import core
 from . import replies as rp
 from .util import MutablePriorityQueue, genTripcode
 from .globals import *
+from .core import load_karma
 
 # module constants
 MEDIA_FILTER_TYPES = ("photo", "animation", "document", "video", "video_note", "sticker")
@@ -39,6 +40,7 @@ db = None
 ch = None
 message_queue = None
 registered_commands = {}
+karma_cmds = load_karma("karma.yaml")
 
 # settings
 linked_network: dict = None
@@ -727,6 +729,16 @@ def plusone(ev: TMessage):
 		return send_answer(ev, rp.Reply(rp.types.ERR_NOT_IN_CACHE), True)
 	return send_answer(ev, core.give_karma(c_user, reply_msid), True)
 
+# literal copy of `plusone` but takes the karma addition as an argument
+def plus_any(ev: TMessage, karma_cmd):
+	c_user = UserContainer(ev.from_user)
+	if ev.reply_to_message is None:
+		return send_answer(ev, rp.Reply(rp.types.ERR_NO_REPLY), True)
+
+	reply_msid = ch.findMapping(ev.from_user.id, ev.reply_to_message.message_id)
+	if reply_msid is None:
+		return send_answer(ev, rp.Reply(rp.types.ERR_NOT_IN_CACHE), True)
+	return send_answer(ev, core.give_custom_karma(c_user, reply_msid, karma_cmd), True)
 
 def relay(ev: TMessage):
 	# handle commands and karma giving
@@ -735,6 +747,8 @@ def relay(ev: TMessage):
 			c, _ = split_command(ev.text)
 			if c in registered_commands.keys():
 				registered_commands[c](ev)
+			if c in karma_cmds.keys():
+				plus_any(ev, karma_cmds[c])
 			return
 		elif ev.text.strip() == "+1":
 			return plusone(ev)

@@ -39,6 +39,7 @@ types = NumericEnum([
 	"DELETION_QUEUED",
 	"PROMOTED_MOD",
 	"PROMOTED_ADMIN",
+	"KARMA_CUSTOM",
 	"KARMA_THANK_YOU",
 	"KARMA_NOTIFICATION",
 	"TRIPCODE_INFO",
@@ -108,6 +109,7 @@ format_strs = {
 	types.DELETION_QUEUED: em("{count} messages matched, deletion was queued."),
 	types.PROMOTED_MOD: em("You've been promoted to moderator, run /modhelp for a list of commands."),
 	types.PROMOTED_ADMIN: em("You've been promoted to admin, run /adminhelp for a list of commands."),
+	types.KARMA_CUSTOM: lambda text, **_: em("{text!x}"),
 	types.KARMA_THANK_YOU: em("You just gave this user some sweet karma, awesome!"),
 	types.KARMA_NOTIFICATION:
 		em( "You've just been given sweet karma! (check /info to see your karma"+

@@ -1,0 +1,10 @@
+# karma commands can be specified here withe following format:
+#
+# crate:
+#   sender: "You sent this anon an entire crate of karma!"
+#   receiver: "Someone gave you an entire crate of karma, you deserve it!"
+#   amount: 3
+#
+# this would register the command /crate to give 3 karma when used as a reply
+# to someone, the `sender` value is shown to the person giving the karma, while
+# the `receiver` value is shown to the person receiving it.
