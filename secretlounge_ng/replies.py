@@ -88,6 +88,20 @@ def smiley(n):
 	elif n <= 3: return ":/"
 	else: return ":("
 
+def parseEmoji(input):
+	supported_emojis = {
+		"🔥": "5104841245755180586",
+		"👍": "5107584321108051014",
+		"👎": "5104858069142078462",
+		"❤️": "5159385139981059251",
+		"🎉": "5046509860389126442",
+		"💩": "5046589136895476101"
+	}
+	print(input)
+	if input in supported_emojis.keys():
+		return supported_emojis[input]
+	return input
+
 format_strs = {
 	types.CUSTOM: "{text}",
 	types.SUCCESS: "☑",
