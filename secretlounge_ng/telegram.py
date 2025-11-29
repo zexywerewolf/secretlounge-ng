@@ -40,13 +40,13 @@ db = None
 ch = None
 message_queue = None
 registered_commands = {}
-karma_cmds = load_karma("karma.yaml")
+karma_cmds = None
 
 # settings
 linked_network: dict = None
 
 def init(config: dict, _db, _ch):
-	global bot, db, ch, message_queue, linked_network, enable_tripcode_toggle
+	global bot, db, ch, message_queue, linked_network, enable_tripcode_toggle, karma_cmds
 	if not config.get("bot_token") or ":" not in config["bot_token"]:
 		logging.error("No Telegram bot token specified")
 		exit(1)
@@ -67,6 +67,8 @@ def init(config: dict, _db, _ch):
 		exit(1)
 	message_reaction_upvote = config.get("message_reaction_upvote", True)
 	enable_tripcode_toggle = config.get("enable_tripcode_toggle", False)
+	if "karma_path" in config.keys():
+		karma_cmds = load_karma(config["karma_path"])
 
 	types = [
 		"text", "location", "venue", "story", "animation", "audio", "photo",
@@ -747,7 +749,7 @@ def relay(ev: TMessage):
 			c, _ = split_command(ev.text)
 			if c in registered_commands.keys():
 				registered_commands[c](ev)
-			if c in karma_cmds.keys():
+			if karma_cmds is not None and c in karma_cmds.keys():
 				plus_any(ev, karma_cmds[c])
 			return
 		elif ev.text.strip() == "+1":

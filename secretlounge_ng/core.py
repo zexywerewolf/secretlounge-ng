@@ -136,9 +136,13 @@ def requireRank(need_rank):
 	return f
 
 def load_karma(path):
-	with open(path, "r") as f:
-		karma = yaml.safe_load(f)
-	return karma
+	try:
+		with open(path, "r") as f:
+			karma = yaml.safe_load(f)
+		return karma
+	except FileNotFoundError:
+		logging.warning(f"{path} not found")
+		return None
 
 ###
 
