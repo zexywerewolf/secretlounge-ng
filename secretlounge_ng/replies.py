@@ -97,7 +97,6 @@ def parseEmoji(input):
 		"🎉": "5046509860389126442",
 		"💩": "5046589136895476101"
 	}
-	print(input)
 	if input in supported_emojis.keys():
 		return supported_emojis[input]
 	return input
