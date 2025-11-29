@@ -558,8 +558,8 @@ def give_custom_karma(user: User, msid, karma_cmd):
 	with db.modifyUser(id=cm.user_id) as user2:
 		user2.karma += karma_cmd["amount"]
 	if not user2.hideKarma:
-		_push_system_message(rp.Reply(rp.types.KARMA_CUSTOM, text=karma_cmd["receiver"]), who=user2, reply_to=msid)
-	return rp.Reply(rp.types.KARMA_CUSTOM, text=karma_cmd["sender"])
+		_push_system_message(rp.Reply(rp.types.KARMA_CUSTOM, text=karma_cmd["receiver"], effect=karma_cmd.get("effect", DEFAULT_KARMA_EFFECT)), who=user2, reply_to=msid)
+	return rp.Reply(rp.types.KARMA_CUSTOM, text=karma_cmd["sender"], effect=karma_cmd.get("effect", DEFAULT_KARMA_EFFECT))
 
 
 @requireUser

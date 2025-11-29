@@ -431,7 +431,9 @@ def send_to_single_inner(chat_id, ev, reply_to=None, force_caption=None):
 		if ev.type == rp.types.CUSTOM:
 			kwargs2["link_preview_options"] = telebot.types.LinkPreviewOptions(is_disabled=True)
 		elif ev.type == rp.types.KARMA_NOTIFICATION:
-			kwargs2["message_effect_id"] = "5107584321108051014" # thumbs up
+			kwargs2["message_effect_id"] = DEFAULT_KARMA_EFFECT
+		elif ev.type == rp.types.KARMA_CUSTOM:
+			kwargs2["message_effect_id"] = ev.kwargs.get("effect", DEFAULT_KARMA_EFFECT)
 		kwargs2["parse_mode"] = "HTML"
 		return bot.send_message(chat_id, rp.formatForTelegram(ev), **kwargs2)
 	elif isinstance(ev, FormattedMessage):
