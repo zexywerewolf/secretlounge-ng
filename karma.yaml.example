@@ -4,7 +4,18 @@
 #   sender: "You sent this anon an entire crate of karma!"
 #   receiver: "Someone gave you an entire crate of karma, you deserve it!"
 #   amount: 3
+#   effect: "5159385139981059251"
 #
 # this would register the command /crate to give 3 karma when used as a reply
 # to someone, the `sender` value is shown to the person giving the karma, while
 # the `receiver` value is shown to the person receiving it.
+#
+# the only implemented emojis are the following, which are the ones available
+# for non-premium bots:
+#
+# 🔥: "5104841245755180586"
+# 👍: "5107584321108051014"
+# 👎: "5104858069142078462"
+# ❤️: "5159385139981059251"
+# 🎉: "5046509860389126442"
+# 💩: "5046589136895476101"

@@ -3,6 +3,5 @@ __pycache__
 *.egg-info
 dist/
 
-config.yaml
-karma.yaml
+*.yaml
 *.sqlite

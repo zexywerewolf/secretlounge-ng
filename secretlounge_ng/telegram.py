@@ -40,13 +40,13 @@ db = None
 ch = None
 message_queue = None
 registered_commands = {}
-karma_cmds = load_karma("karma.yaml")
+karma_cmds = None
 
 # settings
 linked_network: dict = None
 
 def init(config: dict, _db, _ch):
-	global bot, db, ch, message_queue, linked_network, enable_tripcode_toggle
+	global bot, db, ch, message_queue, linked_network, enable_tripcode_toggle, karma_cmds
 	if not config.get("bot_token") or ":" not in config["bot_token"]:
 		logging.error("No Telegram bot token specified")
 		exit(1)
@@ -67,6 +67,8 @@ def init(config: dict, _db, _ch):
 		exit(1)
 	message_reaction_upvote = config.get("message_reaction_upvote", True)
 	enable_tripcode_toggle = config.get("enable_tripcode_toggle", False)
+	if "karma_path" in config.keys():
+		karma_cmds = load_karma(config["karma_path"])
 
 	types = [
 		"text", "location", "venue", "story", "animation", "audio", "photo",
@@ -428,8 +430,10 @@ def send_to_single_inner(chat_id, ev, reply_to=None, force_caption=None):
 			kwargs2["reply_parameters"] = reply_parameters(reply_to)
 		if ev.type == rp.types.CUSTOM:
 			kwargs2["link_preview_options"] = telebot.types.LinkPreviewOptions(is_disabled=True)
-		elif ev.type == rp.types.KARMA_NOTIFICATION:
-			kwargs2["message_effect_id"] = "5107584321108051014" # thumbs up
+		elif ev.type == rp.types.KARMA_NOTIFICATION or ev.type == rp.types.KARMA_THANK_YOU:
+			kwargs2["message_effect_id"] = rp.parseEmoji(DEFAULT_KARMA_EFFECT)
+		elif ev.type == rp.types.KARMA_CUSTOM:
+			kwargs2["message_effect_id"] = rp.parseEmoji(ev.kwargs.get("effect", DEFAULT_KARMA_EFFECT))
 		kwargs2["parse_mode"] = "HTML"
 		return bot.send_message(chat_id, rp.formatForTelegram(ev), **kwargs2)
 	elif isinstance(ev, FormattedMessage):
@@ -747,7 +751,7 @@ def relay(ev: TMessage):
 			c, _ = split_command(ev.text)
 			if c in registered_commands.keys():
 				registered_commands[c](ev)
-			if c in karma_cmds.keys():
+			if karma_cmds is not None and c in karma_cmds.keys():
 				plus_any(ev, karma_cmds[c])
 			return
 		elif ev.text.strip() == "+1":
