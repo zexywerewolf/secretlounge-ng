@@ -43,8 +43,8 @@ def init(config: dict, _db, _ch):
 
 	blacklist_contact = config.get("blacklist_contact", "")
 	enable_signing = config["enable_signing"]
-	enable_sign_min_karma = config["enable_sign_min_karma"]
-	sign_min_karma = config["sign_min_karma"]
+	enable_sign_min_karma = config.get("enable_sign_min_karma", False)
+	sign_min_karma = config.get("sign_min_karma", 0)
 	allow_remove_command = config["allow_remove_command"]
 	if "media_limit_period" in config.keys():
 		media_limit_period = timedelta(hours=int(config["media_limit_period"]))
