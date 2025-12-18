@@ -10,6 +10,9 @@ database: [sqlite, "secretlounge.sqlite"]
 # It is recommended to set this. Reusing it between different bots is allowed.
 #secret_salt: ""
 
+# location for the printers.yaml file
+printers_path: "./printers.yaml"
+
 # location for the karma.yaml file
 karma_path: "./karma.yaml"
 

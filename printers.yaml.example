@@ -1,0 +1,38 @@
+# printers are simple commands that print information to the caller's screen
+#
+# you can define printers with the following format:
+
+#help:
+#  description: ""
+#  value: "<b>Help Menu</b>\n
+#
+#    Here are some commands you can try:\n
+#    - <code>+1</code>: It gives <i>karma</i> to the anon you replied to\n
+#    - <code>/info</code>: Gives you information of your account\n
+#    - <code>/motd</code>: Prints the <i>Welcome Message™</i>!"
+
+# the `description` attribute does not have any function just yet and may be
+# skipped for simplicity, the `value` attribute is the one that holds the
+# content to be printed
+#
+# notice how each line is ended in a \n, this is because in YAML two newlines
+# interpreted as a single line: https://yaml-multiline.info/
+#
+# you can also set up multiple-choice printers by adding each choice as a '-'
+# list, the bot will randomly pick any of the options
+
+#dice:
+#  value:
+#    - "You rolled 1, boo!"
+#    - "You rolled 2... <i>lame</i>"
+#    - "You rolled 3... not good, not bad"
+#    - "You rolled 4, almost there"
+#    - "You rolled 5, nice!"
+#    - "YOOO YOU ROLLED 6, NAILED IT!"
+
+# at any moment you can use HTML formatting in any text:
+
+#formatted:
+#  value: "<b>This</b> is a <i>heavily</i> formatted <span class=\"tg-spoiler\">text</span>\n
+#    with <a href=\"https://example.com\">links</a>, <code>variables</code> and\n
+#    <pre><code class=\"language-javascript\">let t = \"blocks of code!\"</code></pre>"
