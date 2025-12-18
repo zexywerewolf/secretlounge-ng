@@ -135,6 +135,15 @@ def requireRank(need_rank):
 		return wrapper
 	return f
 
+def load_printers(path):
+	try:
+		with open(path, "r") as f:
+			printers = yaml.safe_load(f)
+		return printers
+	except FileNotFoundError:
+		logging.warning(f"{path} not found")
+		return None
+
 def load_karma(path):
 	try:
 		with open(path, "r") as f:

@@ -8,9 +8,9 @@ from functools import partial
 
 from . import core
 from . import replies as rp
-from .util import MutablePriorityQueue, genTripcode
+from .util import MutablePriorityQueue, genTripcode, chooseRandom
 from .globals import *
-from .core import load_karma
+from .core import load_printers, load_karma
 
 # module constants
 MEDIA_FILTER_TYPES = ("photo", "animation", "document", "video", "video_note", "sticker")
@@ -40,13 +40,14 @@ db = None
 ch = None
 message_queue = None
 registered_commands = {}
+printer_cmds = None
 karma_cmds = None
 
 # settings
 linked_network: dict = None
 
 def init(config: dict, _db, _ch):
-	global bot, db, ch, message_queue, linked_network, enable_tripcode_toggle, karma_cmds
+	global bot, db, ch, message_queue, linked_network, enable_tripcode_toggle, printer_cmds, karma_cmds
 	if not config.get("bot_token") or ":" not in config["bot_token"]:
 		logging.error("No Telegram bot token specified")
 		exit(1)
@@ -67,6 +68,10 @@ def init(config: dict, _db, _ch):
 		exit(1)
 	message_reaction_upvote = config.get("message_reaction_upvote", True)
 	enable_tripcode_toggle = config.get("enable_tripcode_toggle", False)
+	if "printers_path" in config.keys():
+		printer_cmds = load_printers(config["printers_path"])
+	else:
+		logging.warning(f"printers_path not found in config.yml")
 	if "karma_path" in config.keys():
 		karma_cmds = load_karma(config["karma_path"])
 	else:
@@ -753,6 +758,11 @@ def relay(ev: TMessage):
 			c, _ = split_command(ev.text)
 			if c in registered_commands.keys():
 				registered_commands[c](ev)
+			if printer_cmds is not None and c in printer_cmds.keys():
+				if isinstance(printer_cmds[c]["value"], list):
+					send_answer(ev, rp.Reply(rp.types.CUSTOM, text=chooseRandom(printer_cmds[c]["value"])), True)
+				else:
+					send_answer(ev, rp.Reply(rp.types.CUSTOM, text=printer_cmds[c]["value"]), True)
 			if karma_cmds is not None and c in karma_cmds.keys():
 				plus_any(ev, karma_cmds[c])
 			return

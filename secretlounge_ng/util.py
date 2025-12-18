@@ -1,6 +1,7 @@
 import itertools
 import time
 import logging
+import random
 from queue import PriorityQueue
 from threading import Lock
 from datetime import timedelta
@@ -100,5 +101,9 @@ def genTripcode(tripcode):
 	trip_final = crypt(trpass[:8], salt)
 
 	return trname, "!" + trip_final[-10:]
+
+def chooseRandom(list: list):
+	index = random.randint(0, len(list) - 1)
+	return list[index]
 
 assert genTripcode("#*Tp0tp8[")[1] == "!LLLLLLLLL."
