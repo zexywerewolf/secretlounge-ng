@@ -69,6 +69,8 @@ def init(config: dict, _db, _ch):
 	enable_tripcode_toggle = config.get("enable_tripcode_toggle", False)
 	if "karma_path" in config.keys():
 		karma_cmds = load_karma(config["karma_path"])
+	else:
+		logging.warning(f"karma_path not found in config.yml")
 
 	types = [
 		"text", "location", "venue", "story", "animation", "audio", "photo",
