@@ -42,6 +42,8 @@ types = NumericEnum([
 	"KARMA_CUSTOM",
 	"KARMA_THANK_YOU",
 	"KARMA_NOTIFICATION",
+	"KARMA_FUCK_YOU",
+	"KARMA_MINUS_NOTIFICATION",
 	"TRIPCODE_INFO",
 	"TRIPCODE_SET",
 
@@ -127,6 +129,10 @@ format_strs = {
 	types.KARMA_NOTIFICATION:
 		em( "You've just been given sweet karma! (check /info to see your karma"+
 			" or /toggleKarma to turn these notifications off)" ),
+	types.KARMA_FUCK_YOU: em("You just took some sweet karma from this user, fuck 'em!"),
+	types.KARMA_MINUS_NOTIFICATION:
+		em( "Someone just took some of your sweet karma! (check /info to see your karma"+
+			" or /toggleKarma to turn these notifications off)" ),
 	types.TRIPCODE_INFO: lambda tripcode, **_:
 		"<b>tripcode</b>: " + ("<code>{tripcode!x}</code>" if tripcode is not None else "unset"),
 	types.TRIPCODE_SET: em("Tripcode set. It will appear as: ") + "<b>{tripname!x}</b> <code>{tripcode!x}</code>",
@@ -142,8 +148,8 @@ format_strs = {
 	types.ERR_BLACKLISTED: lambda reason, contact, **_:
 		em( "You've been blacklisted" + (reason and " for {reason!x}" or "") )+
 		( em("\ncontact:") + " {contact}" if contact else "" ),
-	types.ERR_ALREADY_UPVOTED: em("You have already upvoted this message."),
-	types.ERR_UPVOTE_OWN_MESSAGE: em("You can't upvote your own message."),
+	types.ERR_ALREADY_UPVOTED: em("You have already upvoted/downvoted this message."),
+	types.ERR_UPVOTE_OWN_MESSAGE: em("You can't upvote/downvote your own message."),
 	types.ERR_SPAMMY: em("Your message has not been sent. Avoid sending messages too fast, try again later."),
 	types.ERR_SPAMMY_SIGN: em("Your message has not been sent. Avoid using /sign too often, try again later."),
 	types.ERR_SIGN_PRIVACY: em("Your account privacy settings prevent usage of the sign feature. Enable linked forwards first."),
