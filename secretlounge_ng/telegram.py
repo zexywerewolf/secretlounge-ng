@@ -47,7 +47,7 @@ karma_cmds = None
 linked_network: dict = None
 
 def init(config: dict, _db, _ch):
-	global bot, db, ch, message_queue, linked_network, enable_tripcode_toggle, printer_cmds, karma_cmds
+	global bot, db, ch, message_queue, linked_network, enable_tripcode_toggle, printer_cmds, karma_cmds, allow_downvotes
 	if not config.get("bot_token") or ":" not in config["bot_token"]:
 		logging.error("No Telegram bot token specified")
 		exit(1)
@@ -62,6 +62,9 @@ def init(config: dict, _db, _ch):
 
 	allow_contacts = config["allow_contacts"]
 	allow_documents = config["allow_documents"]
+
+	allow_downvotes = config.get("allow_downvotes", False)
+
 	linked_network = config.get("linked_network")
 	if linked_network is not None and not isinstance(linked_network, dict):
 		logging.error("Wrong type for 'linked_network'")
@@ -740,6 +743,17 @@ def plusone(ev: TMessage):
 		return send_answer(ev, rp.Reply(rp.types.ERR_NOT_IN_CACHE), True)
 	return send_answer(ev, core.give_karma(c_user, reply_msid), True)
 
+# literal copy of `plusone` but substracts one instead
+def minusone(ev: TMessage):
+	c_user = UserContainer(ev.from_user)
+	if ev.reply_to_message is None:
+		return send_answer(ev, rp.Reply(rp.types.ERR_NO_REPLY), True)
+
+	reply_msid = ch.findMapping(ev.from_user.id, ev.reply_to_message.message_id)
+	if reply_msid is None:
+		return send_answer(ev, rp.Reply(rp.types.ERR_NOT_IN_CACHE), True)
+	return send_answer(ev, core.take_karma(c_user, reply_msid), True)
+
 # literal copy of `plusone` but takes the karma addition as an argument
 def plus_any(ev: TMessage, karma_cmd):
 	c_user = UserContainer(ev.from_user)
@@ -768,6 +782,8 @@ def relay(ev: TMessage):
 			return
 		elif ev.text.strip() == "+1":
 			return plusone(ev)
+		elif allow_downvotes is True and ev.text.strip() == "-1":
+			return minusone(ev)
 	# manually handle signing / tripcodes for media since captions don't count for commands
 	if not is_forward(ev) and ev.content_type in CAPTIONABLE_TYPES and (ev.caption or "").startswith("/"):
 		c, arg = split_command(ev.caption)
