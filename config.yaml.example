@@ -53,6 +53,11 @@ sign_min_karma: 0
 enable_stickers_min_karma: false
 stickers_min_karma: 0
 
+# enable karma-based sensitive media (images, videos, gifs and documents)
+# same as karma-based signing AND stickers, but for some specific media :)
+enable_sensitive_media_min_karma: false
+sensitive_media_min_karma: 0
+
 # point of contact shown to blacklisted users (optional)
 #blacklist_contact: http://t.me/invite/something
 

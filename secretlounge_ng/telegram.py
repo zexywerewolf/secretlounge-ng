@@ -47,7 +47,7 @@ karma_cmds = None
 linked_network: dict = None
 
 def init(config: dict, _db, _ch):
-	global bot, db, ch, message_queue, linked_network, enable_tripcode_toggle, printer_cmds, karma_cmds, allow_downvotes, enable_stickers_min_karma, stickers_min_karma
+	global bot, db, ch, message_queue, linked_network, enable_tripcode_toggle, printer_cmds, karma_cmds, allow_downvotes, enable_stickers_min_karma, stickers_min_karma, enable_sensitive_media_min_karma, sensitive_media_min_karma
 	if not config.get("bot_token") or ":" not in config["bot_token"]:
 		logging.error("No Telegram bot token specified")
 		exit(1)
@@ -73,6 +73,8 @@ def init(config: dict, _db, _ch):
 	enable_tripcode_toggle = config.get("enable_tripcode_toggle", False)
 	enable_stickers_min_karma = config.get("enable_stickers_min_karma", False)
 	stickers_min_karma = config.get("stickers_min_karma", 0)
+	enable_sensitive_media_min_karma = config.get("enable_sensitive_media_min_karma", False)
+	sensitive_media_min_karma = config.get("sensitive_media_min_karma", 0)
 	if "printers_path" in config.keys():
 		printer_cmds = load_printers(config["printers_path"])
 	else:
@@ -814,6 +816,11 @@ def relay_inner(ev: TMessage, *, caption_text=None, signed=False, tripcode=False
 	# check user karma for media types.
 	is_sticker = ev.content_type == "sticker"
 	if is_sticker and enable_stickers_min_karma and user.karma < stickers_min_karma:
+		return send_answer(ev, rp.Reply(rp.types.ERR_LOW_KARMA))
+
+	# check user karma for media types.
+	is_sensitive_media = ev.content_type in ("photo", "video", "animation", "document")
+	if is_sensitive_media and enable_sensitive_media_min_karma and user.karma < sensitive_media_min_karma:
 		return send_answer(ev, rp.Reply(rp.types.ERR_LOW_KARMA))
 
 	# check tripcode toggle.
