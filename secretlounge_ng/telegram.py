@@ -812,7 +812,7 @@ def relay_inner(ev: TMessage, *, caption_text=None, signed=False, tripcode=False
 	user = db.getUser(id=ev.from_user.id)
 
 	# check user karma for media types.
-	is_sticker = ev.content_type in "sticker"
+	is_sticker = ev.content_type == "sticker"
 	if is_sticker and enable_stickers_min_karma and user.karma < stickers_min_karma:
 		return send_answer(ev, rp.Reply(rp.types.ERR_LOW_KARMA))
 
