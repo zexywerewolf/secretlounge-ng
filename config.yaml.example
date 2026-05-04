@@ -48,6 +48,11 @@ enable_sign_min_karma: false
 # this setting does not do anything if enable_sign_min_karma is false
 sign_min_karma: 0
 
+# enable karma-based stickers
+# same as karma-based signing, but for stickers :)
+enable_stickers_min_karma: false
+stickers_min_karma: 0
+
 # point of contact shown to blacklisted users (optional)
 #blacklist_contact: http://t.me/invite/something
 

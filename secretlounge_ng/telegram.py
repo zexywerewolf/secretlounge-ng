@@ -47,7 +47,7 @@ karma_cmds = None
 linked_network: dict = None
 
 def init(config: dict, _db, _ch):
-	global bot, db, ch, message_queue, linked_network, enable_tripcode_toggle, printer_cmds, karma_cmds, allow_downvotes
+	global bot, db, ch, message_queue, linked_network, enable_tripcode_toggle, printer_cmds, karma_cmds, allow_downvotes, enable_stickers_min_karma, stickers_min_karma
 	if not config.get("bot_token") or ":" not in config["bot_token"]:
 		logging.error("No Telegram bot token specified")
 		exit(1)
@@ -71,6 +71,8 @@ def init(config: dict, _db, _ch):
 		exit(1)
 	message_reaction_upvote = config.get("message_reaction_upvote", True)
 	enable_tripcode_toggle = config.get("enable_tripcode_toggle", False)
+	enable_stickers_min_karma = config.get("enable_stickers_min_karma", False)
+	stickers_min_karma = config.get("stickers_min_karma", 0)
 	if "printers_path" in config.keys():
 		printer_cmds = load_printers(config["printers_path"])
 	else:
@@ -808,6 +810,11 @@ def relay_inner(ev: TMessage, *, caption_text=None, signed=False, tripcode=False
 		return send_answer(ev, msid) # don't relay message, instead reply
 
 	user = db.getUser(id=ev.from_user.id)
+
+	# check user karma for media types.
+	is_sticker = ev.content_type in "sticker"
+	if is_sticker and enable_stickers_min_karma and user.karma < stickers_min_karma:
+		return send_answer(ev, rp.Reply(rp.types.ERR_LOW_KARMA))
 
 	# check tripcode toggle.
 	if enable_tripcode_toggle and user.toggleTripcode:
