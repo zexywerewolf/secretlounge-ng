@@ -22,12 +22,12 @@ jobs:
       fail-fast: false
       matrix:
         # minimum + latest
-        ver: ['3.8', '3.13']
+        ver: ['3.8', '3.14']
     container:
       image: python:${{ matrix.ver }}
     name: "pylint (Python ${{ matrix.ver }})"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       - name: Install deps
         run: |
           pip install -e .
