@@ -8,7 +8,7 @@ from functools import partial
 
 from . import core
 from . import replies as rp
-from .util import MutablePriorityQueue, genTripcode, chooseRandom
+from .util import MutablePriorityQueue, ScoreKeeper, genTripcode, chooseRandom
 from .globals import *
 from .core import load_printers, load_karma
 
@@ -35,19 +35,21 @@ assert len(set(CAPTIONABLE_TYPES).intersection(COPYABLE_TYPES)) == 0
 TMessage = telebot.types.Message
 
 # module variables
+
 bot: telebot.TeleBot = None
 db = None
 ch = None
-message_queue = None
+message_queue = MutablePriorityQueue()
+reply_ratelimiter = ScoreKeeper(MAX_REPLIES_PER_MINUTE, 0)
 registered_commands = {}
 printer_cmds = None
 karma_cmds = None
 
 # settings
-linked_network: dict = None
+linked_network: Optional[dict] = None
 
 def init(config: dict, _db, _ch):
-	global bot, db, ch, message_queue, linked_network, enable_tripcode_toggle, printer_cmds, karma_cmds, allow_downvotes
+	global bot, db, ch, linked_network, enable_tripcode_toggle, printer_cmds, karma_cmds, allow_downvotes
 	if not config.get("bot_token") or ":" not in config["bot_token"]:
 		logging.error("No Telegram bot token specified")
 		exit(1)
@@ -58,7 +60,6 @@ def init(config: dict, _db, _ch):
 	bot = telebot.TeleBot(config["bot_token"], threaded=False)
 	db = _db
 	ch = _ch
-	message_queue = MutablePriorityQueue()
 
 	allow_contacts = config["allow_contacts"]
 	allow_documents = config["allow_documents"]
@@ -125,6 +126,8 @@ def run():
 			time.sleep(1)
 
 def register_tasks(sched):
+	# reply rate-limit resets fully every minute
+	sched.register((lambda: reply_ratelimiter.decrease(9999)), minutes=1)
 	# cache expiration
 	def task():
 		ids = ch.expire()
@@ -179,6 +182,10 @@ def send_answer(ev: TMessage, m, reply_to=False):
 	elif isinstance(m, list):
 		for m2 in m:
 			send_answer(ev, m2, reply_to)
+		return
+
+	if not reply_ratelimiter.increase(ev.chat.id, 1):
+		logging.debug("Dropping reply due to rate limit: %r", m)
 		return
 
 	reply_to = ev.message_id if reply_to else None
@@ -492,24 +499,34 @@ def delete_message_inner(user_id, id):
 			return
 		break
 
-# look at given Exception `e`, force-leave user if bot was blocked
+# look at given exception to force-leave the user if bot was blocked
 # returns True if message sending should be retried
-def check_telegram_exc(e, user_id):
-	errmsgs = ["bot was blocked by the user", "user is deactivated",
-		"PEER_ID_INVALID", "bot can't initiate conversation"]
+def check_telegram_exc(e: telebot.apihelper.ApiException, user_id):
+	errmsgs = ("bot was blocked by the user", "user is deactivated",
+		"bot can't initiate conversation", "have no write access to the chat")
 	if any(msg in e.result.text for msg in errmsgs):
 		if user_id is not None:
 			core.force_user_leave(user_id)
 		return False
 
+	if "Bad Gateway" in e.result.text or "Gateway Timeout" in e.result.text:
+		logging.warning("Trouble reaching API, waiting a bit")
+		time.sleep(1.5)
+		return True # retry
+
 	if "Too Many Requests" in e.result.text:
-		d = json.loads(e.result.text)["parameters"]["retry_after"]
-		d = min(d, 30) # supposedly this is in seconds, but you sometimes get 100 or even 2000
-		logging.warning("API rate limit hit, waiting for %ds", d)
+		real_d = json.loads(e.result.text)["parameters"]["retry_after"]
+		d = min(real_d, 45) # sometimes we get 100 or even 2000, which seems too high, so don't trust this value too much
+		logging.warning("API rate limit hit, waiting for %ds (was %d)", d, real_d)
+		# FIXME: ratelimits are not necessarily global for our bot account, but can also
+		# be specific to the user we're trying to send to.
+		# If this happens then there's no mechanism to put this "back" and deliver other queued stuff instead.
 		time.sleep(d)
 		return True # retry
 
-	if "VOICE_MESSAGES_FORBIDDEN" in e.result.text:
+	# silently ignore these
+	ignoremsgs = ("VOICE_MESSAGES_FORBIDDEN", "message to delete not found")
+	if any(msg in e.result.text for msg in ignoremsgs):
 		return False
 
 	logging.exception("API exception")

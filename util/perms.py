@@ -33,7 +33,7 @@ def c_list(d, argv):
 		argv = [ next(x for x in d.keys()) ] + argv
 	if len(argv) not in (1, 2):
 		return Exception
-	if argv[0] == '*':
+	if argv[0] == '*': # db wildcard
 		for name in d.keys():
 			argv[0] = name
 			print("== %s" % name)
@@ -91,6 +91,7 @@ def usage(actions):
 	print("Usage: perms.py <action> [arguments...]")
 	print("Note that the db name MUST NOT be specified if there's only one db, "
 		"but MUST be specified if there are multiple.")
+	print("\"*\" works as a wildcard in place of the db name.")
 	print("Actions:")
 	print_function_help(actions)
 
