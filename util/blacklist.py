@@ -102,6 +102,7 @@ def ban_user(db, id, reason):
 			"karma": 0,
 			"hideKarma": 0,
 			"debugEnabled": 0,
+			"toggleTripcode": 0,
 		}
 		sql = "INSERT INTO users (" + ( ", ".join(u.keys()) ) + ") VALUES (" + ( ", ".join("?" for _ in u) ) + ")"
 		db.modify(sql, tuple(u.values()))
