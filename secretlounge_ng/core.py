@@ -446,6 +446,20 @@ def delete_message(user: User, msid, reason: str = ""):
 	logging.info("%s deleted a message from [%s] reason: %s", user, user2.getObfuscatedId(), reason)
 	return rp.Reply(rp.types.SUCCESS)
 
+# mod-only command: pin a message to all users' private chats
+@requireUser
+@requireRank(RANKS.mod)
+def pin_message(user: User, msid):
+	cm = ch.getMessage(msid)
+	if cm is None or cm.user_id is None:
+		return rp.Reply(rp.types.ERR_NOT_IN_CACHE)
+
+	if cm.pinned:
+		return  # already pinned, no reply needed
+
+	cm.setPinned()
+	return rp.Reply(rp.types.PINNED)
+
 @requireUser
 @requireRank(RANKS.admin)
 def cleanup_messages(user: User):

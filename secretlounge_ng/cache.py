@@ -7,22 +7,26 @@ from typing import Optional, Sequence, Set, Iterator, Dict
 from .globals import *
 
 class CachedMessage():
-	__slots__ = ('user_id', 'time', 'warned', 'upvoted')
+	__slots__ = ('user_id', 'time', 'warned', 'upvoted', 'pinned')
 	user_id: Optional[int]
 	time: datetime
 	warned: bool
 	upvoted: Set[int]
+	pinned: bool # has this message been pinned by a mod?
 	def __init__(self, user_id=None):
 		self.user_id = user_id # who has sent this message
 		self.time = datetime.now() # when was this message created?
 		self.warned = False # was the user warned for this message?
 		self.upvoted = set() # user ids that have given this message karma
+		self.pinned = False # has this message been pinned
 	def isExpired(self):
 		return datetime.now() >= self.time + timedelta(hours=MESSAGE_EXPIRE_HOURS)
 	def hasUpvoted(self, user):
 		return user.id in self.upvoted
 	def addUpvote(self, user):
 		self.upvoted.add(user.id)
+	def setPinned(self):
+		self.pinned = True
 
 class Cache():
 	lock: RLock

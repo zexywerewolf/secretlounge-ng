@@ -36,6 +36,7 @@ types = NumericEnum([
 	"USER_NOT_IN_CHAT",
 	"GIVEN_COOLDOWN",
 	"MESSAGE_DELETED",
+	"PINNED",
 	"DELETION_QUEUED",
 	"PROMOTED_MOD",
 	"PROMOTED_ADMIN",
@@ -121,6 +122,7 @@ format_strs = {
 		em( "Your message has been deleted. No cooldown has been "
 			"given this time, but refrain from posting it again."+
 			(reason and " Reason: {reason!x}") or ""),
+	types.PINNED: em("Message pinned"),
 	types.DELETION_QUEUED: em("{count} messages matched, deletion was queued."),
 	types.PROMOTED_MOD: em("You've been promoted to moderator, run /modhelp for a list of commands."),
 	types.PROMOTED_ADMIN: em("You've been promoted to admin, run /adminhelp for a list of commands."),
