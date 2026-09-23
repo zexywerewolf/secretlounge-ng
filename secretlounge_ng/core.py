@@ -460,10 +460,10 @@ def pin_message(user: User, msid):
 		return rp.Reply(rp.types.ERR_NOT_IN_CACHE)
 
 	if cm.pinned:
-		return  # already pinned, no reply needed
+		return rp.Reply(rp.types.ERR_ALREADY_PINNED)
 
 	cm.setPinned()
-	return rp.Reply(rp.types.PINNED)
+	return rp.Reply(rp.types.SUCCESS)
 
 @requireUser
 @requireRank(RANKS.admin)

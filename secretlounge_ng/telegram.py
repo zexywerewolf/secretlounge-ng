@@ -780,10 +780,11 @@ def cmd_pin(ev: TMessage, arg):
 	if reply_msid is None:
 		return send_answer(ev, rp.Reply(rp.types.ERR_NOT_IN_CACHE), True)
 	r = core.pin_message(c_user, reply_msid)
-	if r and r.type == rp.types.PINNED:
+	if r.type == rp.types.SUCCESS:
 		# pin the message
 		_do_pin(reply_msid)
-	send_answer(ev, r, True)
+	else: # Telegram already gives feedback for pins
+		send_answer(ev, r, True)
 
 def _do_pin(msid):
 	"""Pin msid's telegram mapping in every joined user's private chat."""
