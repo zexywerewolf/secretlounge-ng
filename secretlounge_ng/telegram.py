@@ -109,7 +109,7 @@ def init(config: dict, _db, _ch):
 		try:
 			func(*args, **kwargs)
 		except Exception as e:
-			logging.exception("Exception raised in event handler %r", func)
+			logging.error("Exception raised in event handler: %s", e)
 
 	bot.message_handler(
 		content_types=types, chat_types=["private"]
@@ -360,7 +360,7 @@ class QueueItem():
 		try:
 			self.func()
 		except Exception as e:
-			logging.exception("Exception raised during queued message")
+			logging.error("Exception raised during queued message: %s", e)
 
 def get_priority_for(user):
 	if user is None:
@@ -534,7 +534,7 @@ def check_telegram_exc(e: telebot.apihelper.ApiException, user_id):
 	if any(msg in e.result.text for msg in ignoremsgs):
 		return False
 
-	logging.exception("API exception")
+	logging.error("API exception")
 	return False
 
 ####
