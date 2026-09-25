@@ -63,6 +63,32 @@ class MutablePriorityQueue():
 				if selector(self.items[iid]):
 					del self.items[iid]
 
+class ScoreKeeper():
+	def __init__(self, limit, over_limit):
+		self.lock = Lock()
+		self.limit = limit
+		self.over_limit = max(over_limit, limit)
+		self.scores = {}
+	# returns false if over limit
+	def increase(self, uid, n):
+		with self.lock:
+			s = self.scores.get(uid, 0)
+			if s > self.limit:
+				return False
+			elif s + n > self.limit:
+				# this allows going over the maximum just once
+				self.scores[uid] = self.over_limit
+				return s + n <= self.over_limit
+			self.scores[uid] = s + n
+			return True
+	def decrease(self, n=1):
+		with self.lock:
+			if len(self.scores) == 0:
+				return
+			# removes zero-ed entries
+			self.scores = {uid: (s - n) for uid, s in self.scores.items() if s > n}
+
+# FIXME: replace this with the standard class
 class Enum():
 	def __init__(self, m, reverse=True):
 		assert len(set(m.values())) == len(m)

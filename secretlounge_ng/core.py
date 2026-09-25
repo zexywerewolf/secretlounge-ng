@@ -9,13 +9,13 @@ from . import replies as rp
 from .globals import *
 from .database import User, SystemConfig
 from .cache import CachedMessage
-from .util import genTripcode
+from .util import ScoreKeeper, genTripcode
 
 # module variables
 
 db = None
 ch = None
-spam_scores = None
+spam_scores: ScoreKeeper = None
 sign_last_used: Dict[int, datetime] = {}
 
 # settings
@@ -39,7 +39,7 @@ def init(config: dict, _db, _ch):
 	global db, ch, spam_scores, blacklist_contact, enable_signing, allow_remove_command, media_limit_period, sign_interval, enable_sign_min_karma, sign_min_karma, enable_tripcode_toggle
 	db = _db
 	ch = _ch
-	spam_scores = ScoreKeeper()
+	spam_scores = ScoreKeeper(SPAM_LIMIT, SPAM_LIMIT_HIT)
 
 	blacklist_contact = config.get("blacklist_contact", "")
 	enable_signing = config["enable_signing"]
@@ -65,7 +65,7 @@ def init(config: dict, _db, _ch):
 
 def register_tasks(sched):
 	# spam score handling
-	sched.register(spam_scores.scheduledTask, seconds=SPAM_INTERVAL_SECONDS)
+	sched.register(spam_scores.decrease, seconds=SPAM_INTERVAL_SECONDS)
 	# warning removal
 	def task():
 		now = datetime.now()
@@ -152,33 +152,6 @@ def load_karma(path):
 	except FileNotFoundError:
 		logging.warning(f"{path} not found")
 		return None
-
-###
-
-# RAM cache for spam scores
-
-class ScoreKeeper():
-	def __init__(self):
-		self.lock = Lock()
-		self.scores = {}
-	def increaseSpamScore(self, uid, n):
-		with self.lock:
-			s = self.scores.get(uid, 0)
-			if s > SPAM_LIMIT:
-				return False
-			elif s + n > SPAM_LIMIT:
-				self.scores[uid] = SPAM_LIMIT_HIT
-				return s + n <= SPAM_LIMIT_HIT
-			self.scores[uid] = s + n
-			return True
-	def scheduledTask(self):
-		with self.lock:
-			for uid in list(self.scores.keys()):
-				s = self.scores[uid] - 1
-				if s <= 0:
-					del self.scores[uid]
-				else:
-					self.scores[uid] = s
 
 ###
 
@@ -612,7 +585,7 @@ def prepare_user_message(user: User, msg_score: int, *, is_media=False, signed=F
 		if (datetime.now() - user.joined) < media_limit_period:
 			return rp.Reply(rp.types.ERR_MEDIA_LIMIT)
 
-	ok = spam_scores.increaseSpamScore(user.id, msg_score)
+	ok = spam_scores.increase(user.id, msg_score)
 	if not ok:
 		return rp.Reply(rp.types.ERR_SPAMMY)
 
