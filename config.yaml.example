@@ -58,6 +58,16 @@ stickers_min_karma: 0
 enable_sensitive_media_min_karma: false
 sensitive_media_min_karma: 0
 
+# automatically gives users karma when they send
+# text, stickers, animations (gifs), photos and videos, documents
+#self_karma:
+#  - text: 0
+#  - sticker: 0
+#  - animation: 0
+#  - photo: 0
+#  - video: 0
+#  - document: 0
+
 # point of contact shown to blacklisted users (optional)
 #blacklist_contact: http://t.me/invite/something
 
