@@ -66,6 +66,9 @@ sensitive_media_min_karma: 0
 #  - animation: 0
 #  - photo: 0
 #  - video: 0
+#  - video_note: 0
+#  - audio: 0
+#  - voice: 0
 #  - document: 0
 
 # point of contact shown to blacklisted users (optional)
