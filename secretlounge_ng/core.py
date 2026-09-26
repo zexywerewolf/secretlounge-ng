@@ -27,6 +27,7 @@ media_limit_period: Optional[timedelta] = None
 sign_interval: timedelta = None
 enable_sign_min_karma: bool = None
 sign_min_karma: int = 0
+enable_pin_command: bool = None
 
 class IUserContainer():
 	id: int
@@ -36,7 +37,7 @@ class IUserContainer():
 		raise NotImplementedError()
 
 def init(config: dict, _db, _ch):
-	global db, ch, spam_scores, blacklist_contact, enable_signing, allow_remove_command, media_limit_period, sign_interval, enable_sign_min_karma, sign_min_karma, enable_tripcode_toggle
+	global db, ch, spam_scores, blacklist_contact, enable_signing, allow_remove_command, media_limit_period, sign_interval, enable_sign_min_karma, sign_min_karma, enable_tripcode_toggle, enable_pin_command
 	db = _db
 	ch = _ch
 	spam_scores = ScoreKeeper(SPAM_LIMIT, SPAM_LIMIT_HIT)
@@ -50,6 +51,7 @@ def init(config: dict, _db, _ch):
 		media_limit_period = timedelta(hours=int(config["media_limit_period"]))
 	sign_interval = timedelta(seconds=int(config.get("sign_limit_interval", 600)))
 	enable_tripcode_toggle = config.get("enable_tripcode_toggle", False)
+	enable_pin_command = config.get("enable_pin_command", False)
 
 	if config.get("locale"):
 		rp.localization = import_module("..replies_" + config["locale"], __name__).localization
@@ -444,6 +446,23 @@ def delete_message(user: User, msid, reason: str = ""):
 	_push_system_message(rp.Reply(rp.types.MESSAGE_DELETED, reason=reason), who=user2, reply_to=msid)
 	Sender.delete([msid])
 	logging.info("%s deleted a message from [%s] reason: %s", user, user2.getObfuscatedId(), reason)
+	return rp.Reply(rp.types.SUCCESS)
+
+# mod-only command: pin a message to all users' private chats
+@requireUser
+@requireRank(RANKS.mod)
+def pin_message(user: User, msid):
+	if not enable_pin_command:
+		return rp.Reply(rp.types.ERR_COMMAND_DISABLED)
+
+	cm = ch.getMessage(msid)
+	if cm is None or cm.user_id is None:
+		return rp.Reply(rp.types.ERR_NOT_IN_CACHE)
+
+	if cm.pinned:
+		return rp.Reply(rp.types.ERR_ALREADY_PINNED)
+
+	cm.setPinned()
 	return rp.Reply(rp.types.SUCCESS)
 
 @requireUser

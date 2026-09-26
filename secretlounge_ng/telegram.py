@@ -99,7 +99,7 @@ def init(config: dict, _db, _ch):
 		"start", "stop", "users", "info", "motd", "toggledebug", "togglekarma",
 		"version", "source", "modhelp", "adminhelp", "modsay", "adminsay", "mod",
 		"admin", "warn", "delete", "remove", "uncooldown", "blacklist", "s", "sign",
-		"tripcode", "t", "tsign", "cleanup", "privacy", "toggletripcode"
+		"tripcode", "t", "tsign", "cleanup", "privacy", "toggletripcode", "pin"
 	]
 	for c in cmds: # maps /<c> to the function cmd_<c>
 		c = c.lower()
@@ -504,6 +504,19 @@ def delete_message_inner(user_id, id):
 			return
 		break
 
+# pin message with `id` in Telegram chat `chat_id`
+# mirrors the pattern of delete_message_inner for rate limit handling
+def pin_single(chat_id, message_id):
+	while True:
+		try:
+			bot.pin_chat_message(chat_id, message_id)
+		except telebot.apihelper.ApiException as e:
+			retry = check_telegram_exc(e, chat_id)
+			if retry:
+				continue
+			return
+		break
+
 # look at given exception to force-leave the user if bot was blocked
 # returns True if message sending should be retried
 def check_telegram_exc(e: telebot.apihelper.ApiException, user_id):
@@ -754,6 +767,33 @@ def cmd_blacklist(ev: TMessage, arg):
 	if reply_msid is None:
 		return send_answer(ev, rp.Reply(rp.types.ERR_NOT_IN_CACHE), True)
 	return send_answer(ev, core.blacklist_user(c_user, reply_msid, arg), True)
+
+# mod-only: pin a relayed message for all users
+@takesArgument(optional=True)
+def cmd_pin(ev: TMessage, arg):
+	c_user = UserContainer(ev.from_user)
+
+	if ev.reply_to_message is None:
+		return send_answer(ev, rp.Reply(rp.types.ERR_NO_REPLY), True)
+
+	reply_msid = ch.findMapping(ev.from_user.id, ev.reply_to_message.message_id)
+	if reply_msid is None:
+		return send_answer(ev, rp.Reply(rp.types.ERR_NOT_IN_CACHE), True)
+	r = core.pin_message(c_user, reply_msid)
+	if r.type == rp.types.SUCCESS:
+		# pin the message
+		_do_pin(reply_msid)
+	else: # Telegram already gives feedback for pins
+		send_answer(ev, r, True)
+
+def _do_pin(msid):
+	"""Pin msid's telegram mapping in every joined user's private chat."""
+	for user in db.iterateUsers():
+		if not user.isJoined():
+			continue
+		tg_id = ch.getMapping(user.id, msid)
+		if tg_id is not None:
+			pin_single(user.id, tg_id)
 
 def plusone(ev: TMessage):
 	c_user = UserContainer(ev.from_user)
