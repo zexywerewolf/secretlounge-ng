@@ -590,6 +590,10 @@ def give_custom_karma(user: User, msid, karma_cmd):
 		effect=karma_cmd.get("effect", DEFAULT_KARMA_EFFECT)
 	)
 
+@requireUser
+def give_custom_self_karma(user: User, amount):
+	with db.modifyUser(id=user.id) as user2:
+		user2.karma += amount
 
 @requireUser
 def prepare_user_message(user: User, msg_score: int, *, is_media=False, signed=False, tripcode=False):

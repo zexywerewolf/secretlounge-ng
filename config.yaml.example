@@ -58,6 +58,19 @@ stickers_min_karma: 0
 enable_sensitive_media_min_karma: false
 sensitive_media_min_karma: 0
 
+# automatically gives users karma when they send
+# text, stickers, animations (gifs), photos and videos, documents
+#self_karma:
+#  - text: 0
+#  - sticker: 0
+#  - animation: 0
+#  - photo: 0
+#  - video: 0
+#  - video_note: 0
+#  - audio: 0
+#  - voice: 0
+#  - document: 0
+
 # enable pinned messages
 # allows moderators to reply to a message with /pin to pin it
 # for everybody in the chat
